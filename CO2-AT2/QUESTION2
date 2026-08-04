@@ -1,1 +1,21 @@
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+data = {
+    "Free": [1, 0, 1, 0, 1, 0],
+    "Offer": [1, 0, 1, 0, 1, 0],
+    "Money": [1, 0, 0, 0, 1, 0],
+    "Label": [1, 0, 1, 0, 1, 0] 
+}
 
+df = pd.DataFrame(data)
+X = df[["Free", "Offer", "Money"]]
+y = df["Label"]
+
+model = LogisticRegression()
+model.fit(X, y)
+new_email = [[1, 1, 0]]
+prediction = model.predict(new_email)
+if prediction[0] == 1:
+    print("Spam Email")
+else:
+    print("Not Spam")
