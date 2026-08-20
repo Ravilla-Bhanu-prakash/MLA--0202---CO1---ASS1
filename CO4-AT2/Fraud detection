@@ -1,1 +1,79 @@
+from pgmpy.models import DiscreteBayesianNetwork
+from pgmpy.factors.discrete import TabularCPD
+from pgmpy.inference import VariableElimination
+model = DiscreteBayesianNetwork([
+    ('Amount', 'Fraud'),
+    ('Location', 'Fraud'),
+    ('Device', 'Fraud'),
+    ('PreviousFraud', 'Fraud')
+])
+cpd_amount = TabularCPD(
+    variable='Amount', variable_card=2,
+    values=[[0.7], [0.3]],
+    state_names={'Amount': ['Low', 'High']}
+)
 
+cpd_location = TabularCPD(
+    variable='Location', variable_card=2,
+    values=[[0.8], [0.2]],
+    state_names={'Location': ['Known', 'Unknown']}
+)
+
+cpd_device = TabularCPD(
+    variable='Device', variable_card=2,
+    values=[[0.75], [0.25]],
+    state_names={'Device': ['Trusted', 'Untrusted']}
+)
+
+cpd_previous = TabularCPD(
+    variable='PreviousFraud', variable_card=2,
+    values=[[0.9], [0.1]],
+    state_names={'PreviousFraud': ['No', 'Yes']}
+)
+cpd_fraud = TabularCPD(
+    variable='Fraud',
+    variable_card=2,
+    values=[
+        [0.99, 0.95, 0.90, 0.80, 0.85, 0.70, 0.60, 0.30,
+         0.90, 0.75, 0.65, 0.45, 0.55, 0.40, 0.25, 0.10],
+        [0.01, 0.05, 0.10, 0.20, 0.15, 0.30, 0.40, 0.70,
+         0.10, 0.25, 0.35, 0.55, 0.45, 0.60, 0.75, 0.90]
+    ],
+    evidence=['Amount', 'Location', 'Device', 'PreviousFraud'],
+    evidence_card=[2, 2, 2, 2],
+    state_names={
+        'Fraud': ['No', 'Yes'],
+        'Amount': ['Low', 'High'],
+        'Location': ['Known', 'Unknown'],
+        'Device': ['Trusted', 'Untrusted'],
+        'PreviousFraud': ['No', 'Yes']
+    }
+)
+model.add_cpds(
+    cpd_amount,
+    cpd_location,
+    cpd_device,
+    cpd_previous,
+    cpd_fraud
+)
+print("Model valid:", model.check_model())
+inference = VariableElimination(model)
+
+result = inference.query(
+    variables=['Fraud'],
+    evidence={
+        'Amount': 'High',
+        'Location': 'Unknown',
+        'Device': 'Untrusted',
+        'PreviousFraud': 'Yes'
+    }
+)
+
+print("\nFraud Prediction:")
+print(result)
+fraud_probability = result.values[1]
+print("\nProbability of Fraud:", round(fraud_probability * 100, 2), "%")
+if fraud_probability >= 0.5:
+    print("Prediction: FRAUDULENT TRANSACTION")
+else:
+    print("Prediction: LEGITIMATE TRANSACTION")
