@@ -1,0 +1,52 @@
+import numpy as np
+from hmmlearn import hmm
+model = hmm.GaussianHMM(
+    n_components=3,
+    covariance_type="diag",
+    init_params=""
+)
+model.startprob_ = np.array([0.7, 0.2, 0.1])
+
+model.transmat_ = np.array([
+    [0.80, 0.15, 0.05],   # Healthy
+    [0.10, 0.75, 0.15],   # Warning
+    [0.05, 0.15, 0.80]    # Failure
+])
+model.means_ = np.array([
+    [50, 2, 30],      # Healthy
+    [70, 5, 50],      # Warning
+    [90, 8, 70]       # Failure
+])
+model.covars_ = np.array([
+    [25, 1, 25],
+    [25, 1, 25],
+    [25, 1, 25]
+])
+observations = np.array([
+    [48, 2, 29],
+    [55, 3, 35],
+    [68, 5, 48],
+    [75, 6, 55],
+    [88, 8, 68]
+])
+states = model.predict(observations)
+
+state_names = ["Healthy", "Warning", "Failure"]
+
+print("Predicted Machine States:")
+for i, state in enumerate(states):
+    print(
+        "Observation", i + 1,
+        "->", state_names[state]
+    )
+
+print("\nMaintenance Recommendation:")
+
+if 2 in states:
+    print("ALERT: Machine failure risk detected.")
+    print("Perform immediate maintenance.")
+elif 1 in states:
+    print("WARNING: Machine condition is deteriorating.")
+    print("Schedule preventive maintenance.")
+else:
+    print("Machine is operating normally.")
