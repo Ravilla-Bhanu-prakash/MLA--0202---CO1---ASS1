@@ -1,0 +1,68 @@
+import sklearn_crfsuite
+from sklearn_crfsuite import metrics
+train_sentences = [
+    ["John", "bought", "iPhone", "15", "Order123", "because", "screen", "broken"],
+    ["Priya", "ordered", "Samsung", "TV", "Order456", "with", "display", "issue"],
+    ["Rahul", "purchased", "Dell", "Laptop", "Order789", "battery", "problem"]
+]
+train_labels = [
+    ["PER", "O", "PROD", "PROD", "ORDER", "O", "ISSUE", "ISSUE"],
+    ["PER", "O", "PROD", "PROD", "ORDER", "O", "ISSUE", "ISSUE"],
+    ["PER", "O", "PROD", "PROD", "ORDER", "ISSUE", "ISSUE"]
+]
+
+def word_features(sentence, i):
+    word = sentence[i]
+
+    features = {
+        "word": word,
+        "lower": word.lower(),
+        "is_first": i == 0,
+        "is_last": i == len(sentence) - 1,
+        "is_digit": word.isdigit(),
+        "prefix": word[:2],
+        "suffix": word[-2:]
+    }
+
+    if i > 0:
+        features["previous"] = sentence[i - 1]
+
+    if i < len(sentence) - 1:
+        features["next"] = sentence[i + 1]
+
+    return features
+X_train = [
+    [word_features(sentence, i) for i in range(len(sentence))]
+    for sentence in train_sentences
+]
+
+y_train = train_labels
+crf = sklearn_crfsuite.CRF(
+    algorithm="lbfgs",
+    max_iterations=100
+)
+
+crf.fit(X_train, y_train)
+test_sentence = [
+    "Arun", "bought", "iPhone", "15", "Order999",
+    "and", "the", "screen", "is", "broken"
+]
+
+X_test = [
+    word_features(test_sentence, i)
+    for i in range(len(test_sentence))
+]
+prediction = crf.predict([X_test])[0]
+
+print("Named Entity Recognition:")
+for word, label in zip(test_sentence, prediction):
+    print(word, "->", label)
+y_pred = crf.predict(X_train)
+
+print("\nModel Performance:")
+print(metrics.flat_classification_report(
+    y_train,
+    y_pred,
+    labels=["PER", "PROD", "ORDER", "ISSUE", "O"],
+    zero_division=0
+))
