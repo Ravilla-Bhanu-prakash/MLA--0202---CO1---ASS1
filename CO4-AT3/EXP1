@@ -1,0 +1,76 @@
+print("=" * 50)
+print("HEALTHCARE DISEASE DIAGNOSIS")
+print("=" * 50)
+disease_probability = {
+    "Flu": 0.30,
+    "Pneumonia": 0.20,
+    "Allergy": 0.50
+}
+
+symptoms = {
+    "Flu": {
+        "Fever": 0.90,
+        "Cough": 0.80
+    },
+    "Pneumonia": {
+        "Fever": 0.95,
+        "Cough": 0.90
+    },
+    "Allergy": {
+        "Fever": 0.10,
+        "Cough": 0.40
+    }
+}
+fever = True
+cough = True
+
+scores = {}
+
+for disease in disease_probability:
+
+    probability = disease_probability[disease]
+
+    if fever:
+        probability *= symptoms[disease]["Fever"]
+
+    if cough:
+        probability *= symptoms[disease]["Cough"]
+
+    scores[disease] = probability
+total = sum(scores.values())
+
+print("\nDisease Probabilities:")
+
+for disease in scores:
+    probability = scores[disease] / total
+    print(disease, ":", round(probability * 100, 2), "%")
+prediction = max(scores, key=scores.get)
+
+print("\nPredicted Disease:", prediction)
+
+print("\n" + "=" * 50)
+print("MODEL COMPARISON")
+print("=" * 50)
+
+print("""
+Bayesian Network:
+- Directed graph
+- Represents causal relationships
+- Uses conditional probabilities
+- Handles uncertainty
+- Suitable for disease diagnosis
+
+Markov Random Field:
+- Undirected graph
+- Represents relationships/associations
+- Uses potential functions
+- Handles uncertainty
+- Useful for spatial relationships
+
+Conclusion:
+Bayesian Network is more suitable for this
+healthcare disease diagnosis application because
+disease -> symptom relationships can be naturally
+represented and disease probabilities can be calculated
+from patient symptoms and medical history.
+""")
